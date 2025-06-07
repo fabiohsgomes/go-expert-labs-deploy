@@ -1,7 +1,9 @@
 package clients
 
+import "fmt"
+
 type CepClient interface {
-	ConsultaCep(cep string) (DadosCepResponse, error)
+	ConsultaCep(cep string) (*DadosCepResponse, error)
 }
 
 type DadosCepResponse struct {
@@ -15,15 +17,15 @@ type DadosCepResponse struct {
 }
 
 type WeatherClient interface {
-	ConsultaClima(cidade string) (WeatherResponse, error)
+	ConsultaClima(cidade string) (*WeatherResponse, error)
 }
 
 type WeatherResponse struct {
-	Location location `json:"location"`
-	Current  current  `json:"current"`
+	Location Location `json:"location"`
+	Current  Current  `json:"current"`
 }
 
-type location struct {
+type Location struct {
 	Name           string  `json:"name"`
 	Region         string  `json:"region"`
 	Country        string  `json:"country"`
@@ -34,13 +36,13 @@ type location struct {
 	Localtime      string  `json:"localtime"`
 }
 
-type current struct {
+type Current struct {
 	LastUpdatedEpoch int        `json:"last_updated_epoch"`
 	LastUpdated      string     `json:"last_updated"`
 	TempC            float64    `json:"temp_c"`
 	TempF            float64    `json:"temp_f"`
 	IsDay            int        `json:"is_day"`
-	Condition        condition  `json:"condition"`
+	Condition        Condition  `json:"condition"`
 	WindMph          float64    `json:"wind_mph"`
 	WindKph          float64    `json:"wind_kph"`
 	WindDegree       int        `json:"wind_degree"`
@@ -58,16 +60,16 @@ type current struct {
 	Uv               int        `json:"uv"`
 	GustMph          float64    `json:"gust_mph"`
 	GustKph          float64    `json:"gust_kph"`
-	AirQuality       airquality `json:"air_quality"`
+	AirQuality       Airquality `json:"air_quality"`
 }
 
-type condition struct {
+type Condition struct {
 	Text string `json:"text"`
 	Icon string `json:"icon"`
 	Code int    `json:"code"`
 }
 
-type airquality struct {
+type Airquality struct {
 	Co           float64 `json:"co"`
 	No2          float64 `json:"no2"`
 	O3           float64 `json:"o3"`
@@ -79,6 +81,17 @@ type airquality struct {
 }
 
 type WeatherErrorResponse struct {
-	Code	int    `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+func NewWeatherErrorResponse(code int, message string) WeatherErrorResponse {
+	return WeatherErrorResponse{
+		Code:    code,
+		Message: message,
+	}
+}
+
+func (e WeatherErrorResponse) Error() string {
+	return fmt.Sprintf("%d :: %s", e.Code, e.Message)
 }

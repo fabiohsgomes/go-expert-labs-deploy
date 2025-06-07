@@ -2,7 +2,6 @@ package clients
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -17,13 +16,13 @@ func NewWeatherApiClient() *WeatherApiClient {
 	return &WeatherApiClient{}
 }
 
-func (c *WeatherApiClient) ConsultaClima(cidade string) (WeatherResponse, WeatherErrorResponse, error) {
-	weatherResponse := WeatherResponse{}
+func (c *WeatherApiClient) ConsultaClima(cidade string) (*WeatherResponse, error) {
+	weatherResponse := &WeatherResponse{}
 	weatherErrorResponse := WeatherErrorResponse{}
 
 	req, err := http.NewRequest("GET", weatherapiuri, nil)
 	if err != nil {
-		return weatherResponse, weatherErrorResponse, err
+		return weatherResponse, err
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -38,7 +37,7 @@ func (c *WeatherApiClient) ConsultaClima(cidade string) (WeatherResponse, Weathe
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return weatherResponse, weatherErrorResponse, err
+		return weatherResponse, err
 	}
 	defer resp.Body.Close()
 
@@ -46,10 +45,10 @@ func (c *WeatherApiClient) ConsultaClima(cidade string) (WeatherResponse, Weathe
 
 	if resp.StatusCode != http.StatusOK {
 		json.Unmarshal(body, &weatherErrorResponse)
-		return weatherResponse, weatherErrorResponse, fmt.Errorf("error fetching data: %s", resp.Status)
+		return weatherResponse, weatherErrorResponse
 	}
 
 	json.Unmarshal(body, &weatherResponse)
 
-	return weatherResponse, weatherErrorResponse, nil
+	return weatherResponse, nil
 }

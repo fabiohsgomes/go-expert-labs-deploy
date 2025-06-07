@@ -13,7 +13,7 @@ func TestConsultaClima(t *testing.T) {
 		cidade := "São Paulo"
 
 		// Act
-		weatherResponse, _, err := client.ConsultaClima(cidade)
+		weatherResponse, err := client.ConsultaClima(cidade)
 
 		// Assert
 		assert.NoError(t, err)

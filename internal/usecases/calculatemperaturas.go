@@ -1,41 +1,44 @@
 package usecases
 
-import "github.com/fabiohsgomes/go-expert-labs-deploy/internal/infra/clients"
+import (
+	"fmt"
 
-type CalculaTemparaturasUseCase struct {
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/domain"
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/helpers"
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/infra/clients"
+)
+
+type CalculaTemperaturasUseCase struct {
 	weatherapiClient clients.WeatherClient
-	consultaCepUseCase *ConsultaCepUseCase
 }
 
-func NewCalculaTemperaturasUseCase(weatherapiClient clients.WeatherClient, consultaCepUseCase *ConsultaCepUseCase) *CalculaTemparaturasUseCase {
-	return &CalculaTemparaturasUseCase{
+func NewCalculaTemperaturasUseCase(weatherapiClient clients.WeatherClient) *CalculaTemperaturasUseCase {
+	return &CalculaTemperaturasUseCase{
 		weatherapiClient: weatherapiClient,
-		consultaCepUseCase: consultaCepUseCase,
 	}
 }
 
 type DadosTemperaturas struct {
-	Celcius    float64 `json:"temp_C"`
-	Fahrenheit float64 `json:"temp_F"`
-	Kelvin     float64 `json:"temp_K"`
+	Celcius    string `json:"temp_C"`
+	Fahrenheit string `json:"temp_F"`
+	Kelvin     string `json:"temp_K"`
 }
 
-func (u *CalculaTemparaturasUseCase) Execute(cep string) (*DadosTemperaturas, error) {
-	dadosCep, err := u.consultaCepUseCase.ConsultaCep(cep)
-	if err != nil {
-		return nil, err
-	}
-	
-	weatherResponse, err := u.weatherapiClient.ConsultaClima(dadosCep.Localidade)
+func (u *CalculaTemperaturasUseCase) Execute(localidade *domain.Localidade) (*DadosTemperaturas, error) {
+	weatherResponse, err := u.weatherapiClient.ConsultaClima(localidade.Name())
 	if err != nil {
 		return nil, err
 	}
 
-	dadosTemperaturas := &DadosTemperaturas{
-		Celcius:    weatherResponse.Current.TempC,
-		Fahrenheit: weatherResponse.Current.TempF,
-		Kelvin:     0.0,
-	}
+	dadosTemperaturas := u.processaTemperaturas(weatherResponse)
 
 	return dadosTemperaturas, nil
+}
+
+func (u *CalculaTemperaturasUseCase) processaTemperaturas(weatherResponse *clients.WeatherResponse) *DadosTemperaturas {
+	return &DadosTemperaturas{
+		Celcius:    fmt.Sprintf("%.1f", weatherResponse.Current.TempC),
+		Fahrenheit: fmt.Sprintf("%.1f", helpers.CelsiusToFahrenheit(weatherResponse.Current.TempC)),
+		Kelvin:     fmt.Sprintf("%.1f", helpers.CelsiusToKelvin(weatherResponse.Current.TempC)),
+	}
 }

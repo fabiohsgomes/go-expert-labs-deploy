@@ -1,6 +1,9 @@
 package usecases
 
-import "github.com/fabiohsgomes/go-expert-labs-deploy/internal/infra/clients"
+import (
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/domain"
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/infra/clients"
+)
 
 type ConsultaCepUseCase struct {
 	cepClient clients.CepClient
@@ -21,8 +24,8 @@ func NewConsultaCepUseCase(cepClient clients.CepClient) *ConsultaCepUseCase {
 	}
 }
 
-func (u *ConsultaCepUseCase) ConsultaCep(cep string) (*DadosCep, error) {
-	dadosCep, err := u.cepClient.ConsultaCep(cep)
+func (u *ConsultaCepUseCase) ConsultaCep(cep *domain.Cep) (*DadosCep, error) {
+	dadosCep, err := u.cepClient.ConsultaCep(cep.Codigo())
 	if err != nil {
 		return nil, err
 	}
@@ -35,4 +38,8 @@ func (u *ConsultaCepUseCase) ConsultaCep(cep string) (*DadosCep, error) {
 		Localidade:  dadosCep.Localidade,
 		Uf:          dadosCep.Uf,
 	}, nil
+}
+
+func (u ConsultaCepUseCase) ValidateCep(cep string) bool {
+	return len(cep) == 8
 }

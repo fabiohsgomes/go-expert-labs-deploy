@@ -18,6 +18,7 @@ func TestConsultaCep(t *testing.T) {
 		//Assert
 		assert.NoError(t, err)
 		assert.Equal(t, cep, dadosCep.Cep, "CEP should match the requested CEP")
+		assert.Empty(t, dadosCep.Erro, "Erro should be empty for valid CEP")
 	})
 
 	t.Run("Consulta Cep incorreto", func(t *testing.T) {

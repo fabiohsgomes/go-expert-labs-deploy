@@ -14,7 +14,7 @@ func NewCep(codigo string) (*Cep, error) {
 		codigo: helpers.NormalizeZipCode(codigo),
 	}
 
-	if !cep.validar() {
+	if !helpers.ValidateZipCode(cep.codigo) {
 		return nil, erros.ErrInvalidZipCode
 	}
 
@@ -23,8 +23,4 @@ func NewCep(codigo string) (*Cep, error) {
 
 func (c *Cep) Codigo() string {
 	return c.codigo
-}
-
-func (c Cep) validar() bool {
-	return len(c.codigo) == 8
 }

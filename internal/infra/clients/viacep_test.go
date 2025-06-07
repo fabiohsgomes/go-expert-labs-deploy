@@ -3,6 +3,7 @@ package clients
 import (
 	"testing"
 
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/erros"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,22 +18,21 @@ func TestConsultaCep(t *testing.T) {
 
 		//Assert
 		assert.NoError(t, err)
-		assert.Equal(t, cep, dadosCep.Cep, "CEP should match the requested CEP")
-		assert.Empty(t, dadosCep.Erro, "Erro should be empty for valid CEP")
+		assert.Equal(t, cep, dadosCep.Cep)
+		assert.Empty(t, dadosCep.Erro)
 	})
 
-	t.Run("Consulta Cep incorreto", func(t *testing.T) {
+	t.Run("Consulta Cep inexistente", func(t *testing.T) {
 		//Arrange
 		client := NewViaCepClient()
 		cep := "00000000"
 
 		//Act
-		dadosCep, err := client.ConsultaCep(cep)
+		_, err := client.ConsultaCep(cep)
 
 		//Assert
-		assert.NoError(t, err)
-		assert.Empty(t, dadosCep.Cep)
-		assert.NotEmpty(t, dadosCep.Erro)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, erros.ErrZipCodeNotFound)
 	})
 
 	t.Run("Consulta Cep invalido", func(t *testing.T) {
@@ -45,5 +45,15 @@ func TestConsultaCep(t *testing.T) {
 
 		//Assert
 		assert.Error(t, err)
+		assert.ErrorIs(t, err, erros.ErrInvalidZipCode)
+
+		cep = "089313a0"
+
+		//Act
+		_, err = client.ConsultaCep(cep)
+
+		//Assert
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, erros.ErrInvalidZipCode)
 	})
 }

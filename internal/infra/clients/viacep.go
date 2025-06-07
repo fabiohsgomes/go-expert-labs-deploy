@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/erros"
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/helpers"
 )
 
 type ViaCepClient struct {
@@ -21,6 +21,10 @@ func NewViaCepClient() *ViaCepClient {
 }
 
 func (c *ViaCepClient) ConsultaCep(cep string) (*DadosCepResponse, error) {
+	if !helpers.ValidateZipCode(cep) {
+		return nil, erros.ErrInvalidZipCode
+	}
+
 	dadosCep := &DadosCepResponse{}
 
 	req, err := http.NewRequest("GET", viacepuri+cep+format, nil)
@@ -43,7 +47,7 @@ func (c *ViaCepClient) ConsultaCep(cep string) (*DadosCepResponse, error) {
 		return dadosCep, erros.ErrZipCodeNotFound
 	}
 
-	dadosCep.Cep = strings.ReplaceAll(dadosCep.Cep, "-", "")
+	dadosCep.Cep = helpers.NormalizeZipCode(dadosCep.Cep)
 
 	return dadosCep, nil
 }

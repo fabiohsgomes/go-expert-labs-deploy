@@ -1,0 +1,9 @@
+services:
+  previsao:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: previsoes
+    restart: always
+    ports:
+      - 3000:3000

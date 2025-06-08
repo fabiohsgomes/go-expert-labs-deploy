@@ -1,3 +1,15 @@
 GET http://localhost:3000/cidades/05893130/temperaturas HTTP/1.1
 Host: localhost:3000
 Accept: application/json
+
+###
+
+GET http://localhost:3000/cidades/00000000/temperaturas HTTP/1.1
+Host: localhost:3000
+Accept: application/json
+
+###
+
+GET http://localhost:3000/cidades/000000a0/temperaturas HTTP/1.1
+Host: localhost:3000
+Accept: application/json

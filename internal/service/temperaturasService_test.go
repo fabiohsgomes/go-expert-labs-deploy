@@ -14,6 +14,11 @@ import (
 
 type TemperaturasServiceTestSuite struct {
 	suite.Suite
+	viacepClientMock           *ViaCepClientMock
+	weatherapiClientMock       *WeatherApiClientMock
+	consultaCepUseCase         *usecases.ConsultaCepUseCase
+	calculaTemperaturasUseCase *usecases.CalculaTemperaturasUseCase
+	service                    *TemperaturasService
 }
 
 type ViaCepClientMock struct {
@@ -44,17 +49,17 @@ func TestTemperaturasServiceSuite(t *testing.T) {
 	suite.Run(t, new(TemperaturasServiceTestSuite))
 }
 
+func (s *TemperaturasServiceTestSuite) SetupTest() {
+	// Arrange
+	s.viacepClientMock = new(ViaCepClientMock)
+	s.weatherapiClientMock = new(WeatherApiClientMock)
+	s.consultaCepUseCase = usecases.NewConsultaCepUseCase(s.viacepClientMock)
+	s.calculaTemperaturasUseCase = usecases.NewCalculaTemperaturasUseCase(s.weatherapiClientMock)
+	s.service = NewTemperaturasService(s.consultaCepUseCase, s.calculaTemperaturasUseCase)
+}
+
 func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValido() {
 	// Arrange
-	viacepClientMock := new(ViaCepClientMock)
-	consultaCepUseCase := usecases.NewConsultaCepUseCase(viacepClientMock)
-
-	weatherapiClientMock := new(WeatherApiClientMock)
-	calculaTemperaturasUseCase := usecases.NewCalculaTemperaturasUseCase(weatherapiClientMock)
-
-	service := NewTemperaturasService(consultaCepUseCase, calculaTemperaturasUseCase)
-
-	//expected DadosCepResponse
 	dadosCepResponseMock := &clients.DadosCepResponse{
 		Cep:         "01001000",
 		Logradouro:  "Praça da Sé",
@@ -64,7 +69,6 @@ func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValido() {
 		Uf:          "SP",
 	}
 
-	//expected WeatherResponse with only TempC
 	weatherResponseMock := &clients.WeatherResponse{
 		Current: clients.Current{
 			TempC: 25.0,
@@ -76,11 +80,11 @@ func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValido() {
 	expectedKelvin := fmt.Sprintf("%.1f", helpers.CelsiusToKelvin(weatherResponseMock.Current.TempC))
 
 	// Mocking the expected behavior
-	viacepClientMock.On("ConsultaCep", "01001000").Return(dadosCepResponseMock, nil)
-	weatherapiClientMock.On("ConsultaClima", "São Paulo").Return(weatherResponseMock, nil)
+	s.viacepClientMock.On("ConsultaCep", "01001000").Return(dadosCepResponseMock, nil)
+	s.weatherapiClientMock.On("ConsultaClima", "São Paulo").Return(weatherResponseMock, nil)
 
 	// Act
-	dadosTemperaturas, err := service.Processa("01001000")
+	dadosTemperaturas, err := s.service.Processa("01001000")
 
 	// Assert
 	s.NoError(err)
@@ -88,21 +92,12 @@ func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValido() {
 	s.Equal(expectedFahrenheit, dadosTemperaturas.Fahrenheit)
 	s.Equal(expectedKelvin, dadosTemperaturas.Kelvin)
 
-	viacepClientMock.AssertExpectations(s.T())
-	weatherapiClientMock.AssertExpectations(s.T())
+	s.viacepClientMock.AssertExpectations(s.T())
+	s.weatherapiClientMock.AssertExpectations(s.T())
 }
 
 func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepInexistente() {
 	// Arrange
-	viacepClientMock := new(ViaCepClientMock)
-	consultaCepUseCase := usecases.NewConsultaCepUseCase(viacepClientMock)
-
-	weatherapiClientMock := new(WeatherApiClientMock)
-	calculaTemperaturasUseCase := usecases.NewCalculaTemperaturasUseCase(weatherapiClientMock)
-
-	service := NewTemperaturasService(consultaCepUseCase, calculaTemperaturasUseCase)
-
-	//expected DadosCepResponse
 	dadosCepResponseMock := &clients.DadosCepResponse{
 		Erro: "true",
 	}
@@ -110,40 +105,92 @@ func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepInexistente() {
 	expectedErrDadosCepResponse := erros.ErrZipCodeNotFound
 
 	// Mocking the expected behavior
-	viacepClientMock.On("ConsultaCep", "00000000").Return(dadosCepResponseMock, expectedErrDadosCepResponse)
+	s.viacepClientMock.On("ConsultaCep", "00000000").Return(dadosCepResponseMock, expectedErrDadosCepResponse)
 
 	// Act
-	_, err := service.Processa("00000000")
+	_, err := s.service.Processa("00000000")
 
 	// Assert
 	s.Error(err)
 	s.ErrorIs(err, erros.ErrZipCodeNotFound)
 	s.Equal(expectedErrDadosCepResponse.Error(), err.Error())
 
-	viacepClientMock.AssertExpectations(s.T())
-	weatherapiClientMock.AssertNotCalled(s.T(), "ConsultaClima", mock.Anything)
+	s.viacepClientMock.AssertExpectations(s.T())
+	s.weatherapiClientMock.AssertNotCalled(s.T(), "ConsultaClima", mock.Anything)
 }
 
 func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepInvalido() {
 	// Arrange
-	viacepClientMock := new(ViaCepClientMock)
-	consultaCepUseCase := usecases.NewConsultaCepUseCase(viacepClientMock)
-
-	weatherapiClientMock := new(WeatherApiClientMock)
-	calculaTemperaturasUseCase := usecases.NewCalculaTemperaturasUseCase(weatherapiClientMock)
-
-	service := NewTemperaturasService(consultaCepUseCase, calculaTemperaturasUseCase)
-
 	expectedErr := erros.ErrZipCodeNotFound
 
 	// Act
-	_, err := service.Processa("08931a30")
+	_, err := s.service.Processa("08931a30")
 
 	// Assert
 	s.Error(err)
 	s.ErrorIs(err, erros.ErrInvalidZipCode)
 	s.Equal(expectedErr.Error(), err.Error())
 
-	viacepClientMock.AssertNotCalled(s.T(), "ConsultaCep", mock.Anything)
-	weatherapiClientMock.AssertNotCalled(s.T(), "ConsultaClima", mock.Anything)
+	s.viacepClientMock.AssertNotCalled(s.T(), "ConsultaCep", mock.Anything)
+	s.weatherapiClientMock.AssertNotCalled(s.T(), "ConsultaClima", mock.Anything)
+}
+
+func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValidoLocalidadeInvalida() {
+	// Arrange
+	dadosCepResponseMock := &clients.DadosCepResponse{
+		Cep:         "01001000",
+		Logradouro:  "",
+		Complemento: "lado ímpar",
+		Bairro:      "Sé",
+		Localidade:  "São Paulo",
+		Uf:          "SP",
+	}
+
+	expectedErr := erros.ErrCityIsRequired
+
+	// Mocking the expected behavior
+	s.viacepClientMock.On("ConsultaCep", "01001000").Return(dadosCepResponseMock, nil)
+
+	// Act
+	_, err := s.service.Processa("01001000")
+
+	// Assert
+	s.Error(err)
+	s.ErrorIs(err, erros.ErrInvalidZipCode)
+	s.Equal(expectedErr.Error(), err.Error())
+
+	s.viacepClientMock.AssertExpectations(s.T())
+	s.weatherapiClientMock.AssertNotCalled(s.T(), "ConsultaClima", mock.Anything)
+}
+
+func (s *TemperaturasServiceTestSuite) ProcessaTemperaturasComCepValidoLocalidadeInexistente() {
+	// Arrange
+	dadosCepResponseMock := &clients.DadosCepResponse{
+		Cep:         "01001000",
+		Logradouro:  "XX",
+		Complemento: "lado ímpar",
+		Bairro:      "Sé",
+		Localidade:  "São Paulo",
+		Uf:          "SP",
+	}
+
+	//expected WeatherResponse with only TempC
+	weatherResponseMock := &clients.WeatherResponse{}
+
+	expectedErr := erros.ErrCityNotFound
+
+	// Mocking the expected behavior
+	s.viacepClientMock.On("ConsultaCep", "01001000").Return(dadosCepResponseMock, nil)
+	s.weatherapiClientMock.On("ConsultaClima", "XX").Return(weatherResponseMock, erros.ErrCityNotFound)
+
+	// Act
+	_, err := s.service.Processa("01001000")
+
+	// Assert
+	s.Error(err)
+	s.ErrorIs(err, erros.ErrCityNotFound)
+	s.Equal(expectedErr.Error(), err.Error())
+
+	s.viacepClientMock.AssertExpectations(s.T())
+	s.weatherapiClientMock.AssertExpectations(s.T())
 }

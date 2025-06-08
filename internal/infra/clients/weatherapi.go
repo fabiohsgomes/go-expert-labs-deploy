@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/erros"
 )
 
 type WeatherApiClient struct {
@@ -29,7 +31,7 @@ func (c *WeatherApiClient) ConsultaClima(cidade string) (*WeatherResponse, error
 	url := req.URL
 	q := url.Query()
 	q.Set("q", cidade)
-	q.Set("lang", "pt-br")
+	q.Set("lang", "pt")
 	q.Set("key", key)
 	url.RawQuery = q.Encode()
 
@@ -45,6 +47,11 @@ func (c *WeatherApiClient) ConsultaClima(cidade string) (*WeatherResponse, error
 
 	if resp.StatusCode != http.StatusOK {
 		json.Unmarshal(body, &weatherErrorResponse)
+
+		if weatherErrorResponse.ErrorCode() == 1006 {
+			return weatherResponse, erros.ErrCityNotFound
+		}
+
 		return weatherResponse, weatherErrorResponse
 	}
 

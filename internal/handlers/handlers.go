@@ -23,11 +23,11 @@ func ProcessaTemperaturasHandler(w http.ResponseWriter, r *http.Request) {
 	temperaturasService := service.NewTemperaturasService(cepUseCase, calculaTemperaturasUseCase)
 	dadosTemperaturas, err := temperaturasService.Processa(cepPathValue)
 	if err != nil {
-		if errors.Is(err, erros.ErrInvalidZipCode) {
+		if errors.Is(err, erros.ErrInvalidZipCode) || errors.Is(err, erros.ErrCityIsRequired) {
 			http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 			return
 		}
-		if errors.Is(err, erros.ErrZipCodeNotFound) {
+		if errors.Is(err, erros.ErrZipCodeNotFound) || errors.Is(err, erros.ErrCityNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}

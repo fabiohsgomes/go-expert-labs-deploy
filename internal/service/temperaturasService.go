@@ -6,7 +6,7 @@ import (
 )
 
 type TemperaturasService struct {
-	consutlaCepUseCase *usecases.ConsultaCepUseCase
+	consutlaCepUseCase         *usecases.ConsultaCepUseCase
 	calculaTemperaturasUseCase *usecases.CalculaTemperaturasUseCase
 }
 
@@ -15,7 +15,7 @@ func NewTemperaturasService(
 	calculaTemperaturasUseCase *usecases.CalculaTemperaturasUseCase,
 ) *TemperaturasService {
 	return &TemperaturasService{
-		consutlaCepUseCase: consutlaCepUseCase,
+		consutlaCepUseCase:         consutlaCepUseCase,
 		calculaTemperaturasUseCase: calculaTemperaturasUseCase,
 	}
 }
@@ -31,7 +31,10 @@ func (s *TemperaturasService) Processa(cep string) (*usecases.DadosTemperaturas,
 		return nil, err
 	}
 
-	localidadeDomain := domain.NewLocalidade(dadosCep.Localidade)
+	localidadeDomain, err := domain.NewLocalidade(dadosCep.Localidade)
+	if err != nil {
+		return nil, err
+	}
 
 	dadosTemperaturas, err := s.calculaTemperaturasUseCase.Execute(localidadeDomain)
 	if err != nil {

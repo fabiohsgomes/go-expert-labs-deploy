@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/domain"
@@ -35,15 +36,16 @@ func (s *CalculaTemperaturasTestSuite) TestCalculaTemperaturas() {
 	weatherApiClientMock := new(WeatherApiClientMock)
 	calculaTemperaturasUseCase := NewCalculaTemperaturasUseCase(weatherApiClientMock)
 
-	cidade := domain.NewLocalidade("São Paulo")
+	cidade, _ := domain.NewLocalidade("São Paulo")
 	expectedResponse := &clients.WeatherResponse{
 		Current: clients.Current{
 			TempC: 25.0,
 		},
 	}
 
-	expectedFahrenheit := helpers.CelsiusToFahrenheit(expectedResponse.Current.TempC)
-	expectedKelvin := helpers.CelsiusToKelvin(expectedResponse.Current.TempC)
+	expectedCelsius := fmt.Sprintf("%.1f", expectedResponse.Current.TempC)
+	expectedFahrenheit := fmt.Sprintf("%.1f", helpers.CelsiusToFahrenheit(expectedResponse.Current.TempC))
+	expectedKelvin := fmt.Sprintf("%.1f", helpers.CelsiusToKelvin(expectedResponse.Current.TempC))
 
 	weatherApiClientMock.On("ConsultaClima", cidade.Name()).Return(expectedResponse, nil)
 
@@ -52,7 +54,7 @@ func (s *CalculaTemperaturasTestSuite) TestCalculaTemperaturas() {
 
 	//Assert
 	s.NoError(err)
-	s.Equal(expectedResponse.Current.TempC, dadosTemperaturas.Celcius)
+	s.Equal(expectedCelsius, dadosTemperaturas.Celcius)
 	s.Equal(expectedFahrenheit, dadosTemperaturas.Fahrenheit) // 25°C to °F
 	s.Equal(expectedKelvin, dadosTemperaturas.Kelvin)         // 25°C to K
 

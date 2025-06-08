@@ -92,6 +92,14 @@ func NewWeatherErrorResponse(code int, message string) WeatherErrorResponse {
 	}
 }
 
+func (e WeatherErrorResponse) ErrorCode() int {
+	return e.Code
+}
+
+func (e WeatherErrorResponse) ErrorMessage() string {
+	return e.Message
+}
+
 func (e WeatherErrorResponse) Error() string {
 	return fmt.Sprintf("%d :: %s", e.Code, e.Message)
 }

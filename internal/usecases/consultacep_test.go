@@ -12,6 +12,8 @@ import (
 
 type ConsultaCepTestSuite struct {
 	suite.Suite
+	cepClientMock *ViaCepClientMock
+	consultaCepUseCase *ConsultaCepUseCase
 }
 
 type ViaCepClientMock struct {
@@ -30,11 +32,14 @@ func TestConsultaCepSuite(t *testing.T) {
 	suite.Run(t, new(ConsultaCepTestSuite))
 }
 
+func (s *ConsultaCepTestSuite) SetupTest() {
+	// Arrange
+	s.cepClientMock = new(ViaCepClientMock)
+	s.consultaCepUseCase = NewConsultaCepUseCase(s.cepClientMock)
+}
+
 func (s *ConsultaCepTestSuite) TestConsultaCepWithValidCep() {
 	// Arrange
-	cepClientMock := new(ViaCepClientMock)
-	consultaCepUseCase := NewConsultaCepUseCase(cepClientMock)
-
 	cep, _ := domain.NewCep("01001000")
 	expectedResponse := &clients.DadosCepResponse{
 		Cep:         "01001000",
@@ -45,10 +50,10 @@ func (s *ConsultaCepTestSuite) TestConsultaCepWithValidCep() {
 		Uf:          "SP",
 	}
 
-	cepClientMock.On("ConsultaCep", cep.Codigo()).Return(expectedResponse, nil)
+	s.cepClientMock.On("ConsultaCep", cep.Codigo()).Return(expectedResponse, nil)
 
 	// Act
-	dadosCep, err := consultaCepUseCase.ConsultaCep(cep)
+	dadosCep, err := s.consultaCepUseCase.ConsultaCep(cep)
 
 	// Assert
 	s.NoError(err)
@@ -59,29 +64,26 @@ func (s *ConsultaCepTestSuite) TestConsultaCepWithValidCep() {
 	s.Equal(expectedResponse.Localidade, dadosCep.Localidade)
 	s.Equal(expectedResponse.Uf, dadosCep.Uf)
 
-	cepClientMock.AssertExpectations(s.T())
+	s.cepClientMock.AssertExpectations(s.T())
 }
 
 func (s *ConsultaCepTestSuite) TestConsultaCepWithUnexistCep() {
 	// Arrange
-	cepClientMock := new(ViaCepClientMock)
-	consultaCepUseCase := NewConsultaCepUseCase(cepClientMock)
-
 	cep, _ := domain.NewCep("00000000")
 	expectedResponse := &clients.DadosCepResponse{
 		Erro: "true",
 	}
 	expectedResponseError := erros.ErrZipCodeNotFound
 
-	cepClientMock.On("ConsultaCep", cep.Codigo()).Return(expectedResponse, expectedResponseError)
+	s.cepClientMock.On("ConsultaCep", cep.Codigo()).Return(expectedResponse, expectedResponseError)
 
 	// Act
-	_, err := consultaCepUseCase.ConsultaCep(cep)
+	_, err := s.consultaCepUseCase.ConsultaCep(cep)
 
 	// Assert
 	s.Error(err)
 	s.ErrorIs(err, erros.ErrZipCodeNotFound)
 	s.Equal(expectedResponseError.Error(), err.Error())
 
-	cepClientMock.AssertExpectations(s.T())
+	s.cepClientMock.AssertExpectations(s.T())
 }

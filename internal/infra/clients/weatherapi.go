@@ -5,17 +5,22 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/config"
 	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/erros"
 )
 
 type WeatherApiClient struct {
+	key string
 }
 
 var weatherapiuri = "https://api.weatherapi.com/v1/current.json"
-var key = "da26cd9b6c624664977234238250506"
 
 func NewWeatherApiClient() *WeatherApiClient {
-	return &WeatherApiClient{}
+	cfg := config.Get()
+
+	return &WeatherApiClient{
+		key: cfg.GetWeatherApiKey(),
+	}
 }
 
 func (c *WeatherApiClient) ConsultaClima(cidade string) (*WeatherResponse, error) {
@@ -32,7 +37,7 @@ func (c *WeatherApiClient) ConsultaClima(cidade string) (*WeatherResponse, error
 	q := url.Query()
 	q.Set("q", cidade)
 	q.Set("lang", "pt")
-	q.Set("key", key)
+	q.Set("key", c.key)
 	url.RawQuery = q.Encode()
 
 	req.URL = url

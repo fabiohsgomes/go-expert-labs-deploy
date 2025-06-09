@@ -36,5 +36,8 @@
 			]
 		}
 	},
-	"postCreateCommand": "make go-install"
+	"postCreateCommand": "make go-install",
+	"containerEnv": {
+		"AMBIENTE_PUBLICACAO":"LOCAL"
+	}
 }

@@ -3,10 +3,13 @@ package clients
 import (
 	"testing"
 
+	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConsultaClima(t *testing.T) {
+	config.LoadConfig("../../..")
+
 	t.Run("Consulta Clima com sucesso", func(t *testing.T) {
 		// Arrange
 		client := NewWeatherApiClient()

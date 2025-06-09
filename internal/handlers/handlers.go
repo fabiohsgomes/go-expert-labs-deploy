@@ -42,5 +42,6 @@ func ProcessaTemperaturasHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Error encoding response for CEP %s: %v", cepPathValue, err)
 		return
 	}
+
 	log.Printf("Successfully processed temperatures for CEP %s", cepPathValue)
 }

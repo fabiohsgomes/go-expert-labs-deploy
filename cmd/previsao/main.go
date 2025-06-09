@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/fabiohsgomes/go-expert-labs-deploy/internal/config"
@@ -13,5 +14,9 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /cidades/{cep}/temperaturas", handlers.ProcessaTemperaturasHandler)
 
-	http.ListenAndServe(":3000", mux)
+	log.Println("Servidor escutando na porta :3000")
+
+	if err := http.ListenAndServe(":3000", mux); err != nil {
+		log.Println(err)
+	}
 }

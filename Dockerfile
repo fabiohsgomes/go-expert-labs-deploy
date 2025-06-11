@@ -7,6 +7,8 @@ RUN go mod tidy \
 
 FROM scratch
 WORKDIR /app
+ENV AMBIENTE_PUBLICACAO=DEMO
+ENV WEATHER_API_KEY=da26cd9b6c624664977234238250506
 COPY --from=build /app/cmd/previsao/previsao previsao
 COPY --from=build /etc/ssl/certs/ /etc/ssl/certs/
 ENTRYPOINT ["./previsao"]

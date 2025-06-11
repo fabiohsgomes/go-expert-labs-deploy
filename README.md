@@ -7,3 +7,9 @@ Laboratório que tem objetivo de publicar uma Api Rest usando o Google Claud Run
 ```bash
 docker compose up -d
 ```
+
+## Link do deploy no CloudRun
+
+ - cep válido : https://deploy-cloudrun-previsao-237975055910.us-west1.run.app/cidades/05893130/temperaturas
+ - cep não encontrado : https://deploy-cloudrun-previsao-237975055910.us-west1.run.app/cidades/00000000/temperaturas
+ - cep inválido : https://deploy-cloudrun-previsao-237975055910.us-west1.run.app/cidades/000000a0/temperaturas
